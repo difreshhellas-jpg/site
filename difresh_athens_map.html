@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DIFRESH Hellas — Athens Machines</title>
+<style>
+  :root{--ink:#1f2320;--muted:#6b6f6a;--line:#e2ded5;--land:#ece9e1;--landstroke:#d3cfc5;--bg:#faf9f6;--card:#ffffff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 18px 40px}
+  h1{font-size:22px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .mapcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:12px 2px 0;font-size:12.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .k{width:10px;height:10px;border-radius:50%;display:inline-block}
+  #tip{position:absolute;pointer-events:none;display:none;background:#fff;border:1px solid #c9c5ba;border-radius:9px;padding:8px 11px;max-width:240px;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:5}
+  #tipn{font-size:13px;font-weight:600}
+  #tipr{font-size:12px;color:var(--muted);margin-top:2px}
+  .foot{color:var(--muted);font-size:12.5px;margin-top:14px;line-height:1.6}
+  circle.dot-hit{fill:transparent;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DIFRESH Hellas — Athens &amp; Attica machines</h1>
+  <p class="sub" id="sub">Loading map…</p>
+  <div class="mapcard">
+    <div id="map"></div>
+    <div id="tip"><div id="tipn"></div><div id="tipr"></div></div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <p class="foot" id="foot"></p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const COL={"North Athens":"#2f80ed","West Athens":"#27ae60","Centre Athens":"#8e44ad","South Athens":"#e67e22","West Attica / Piraeus edge":"#16a085"};
+const P=[
+["Nea Filadelfeia — Agavito","North Athens",38.033,23.738],
+["Marousi — Fridays Golden Hall","North Athens",38.052,23.792],
+["Kifisia — Fridays Kefalari","North Athens",38.086,23.812],
+["Nea Erythraia — Flocafe","North Athens",38.078,23.822],
+["Kato Kifisia — Goody's","North Athens",38.066,23.803],
+["Parnitha — Kavallaris","North Athens",38.16,23.73],
+["Parnitha — Parnis Palace","North Athens",38.155,23.726],
+["Parnitha — Bafi refuge","North Athens",38.149,23.721],
+["Fyli — Caprice","North Athens",38.07,23.66],
+["Ilion — Goody's Thivon","West Athens",38.031,23.699],
+["Ilion — Margaritas Cafe","West Athens",38.028,23.704],
+["Bournazi — Enzzo","West Athens",38.016,23.695],
+["Kamatero — Psiloreitis","West Athens",38.062,23.706],
+["Tritsis Park — Goody's","West Athens",38.021,23.681],
+["Tritsis Park — Flocafe","West Athens",38.019,23.685],
+["Peristeri — Goody's","West Athens",38.013,23.691],
+["Chaidari — Athens Queen","West Athens",38.018,23.652],
+["Monastiraki — Fridays Kapnikarea","Centre Athens",37.976,23.727],
+["Ampelokipi — Fridays","Centre Athens",37.991,23.759],
+["Kolonaki — Fridays","Centre Athens",37.980,23.743],
+["Sepolia — Mezedopoleio","Centre Athens",38.008,23.722],
+["Panormou — Le Roi","Centre Athens",38.001,23.763],
+["Kokkinos Lotos","Centre Athens",37.985,23.736],
+["Dioskouroi","Centre Athens",37.983,23.731],
+["Hoo Cut","Centre Athens",37.978,23.729],
+["Faliro — Fridays Floisvos","South Athens",37.928,23.699],
+["Nea Smyrni — Goody's","South Athens",37.945,23.714],
+["Kallithea — Goody's","South Athens",37.955,23.701],
+["Glyfada — Fridays","South Athens",37.865,23.754],
+["Pasalimani — Goody's","West Attica / Piraeus edge",37.938,23.652],
+["Piraeus Limani — Goody's","West Attica / Piraeus edge",37.943,23.641],
+["Chaidari — Marcos Hotel (18 mach)","West Attica / Piraeus edge",38.009,23.645],
+["Elefsina — Anemos Cafe","West Attica / Piraeus edge",38.04,23.54],
+["Nea Peramos — Fotiou","West Attica / Piraeus edge",38.01,23.42],
+["Megara — Goody's (\u2192Athens)","West Attica / Piraeus edge",38.001,23.341],
+["Megara — Goody's (\u2192Korinth)","West Attica / Piraeus edge",37.997,23.345],
+["Alepochori — Thalassa","West Attica / Piraeus edge",38.10,23.20]
+];
+const land='#ece9e1',lstroke='#d3cfc5';
+const W=900,H=560;
+const svg=d3.select('#map').append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%');
+const g=svg.append('g');
+const tip=document.getElementById('tip'),tipn=document.getElementById('tipn'),tipr=document.getElementById('tipr');
+// legend
+const leg=document.getElementById('legend');
+Object.entries(COL).forEach(([k,c])=>{const s=document.createElement('span');s.innerHTML=`<span class="k" style="background:${c}"></span>${k}`;leg.appendChild(s);});
+d3.json('https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/grc.topo.json').then(topo=>{
+  const key=Object.keys(topo.objects)[0];
+  const fc=topojson.feature(topo,topo.objects[key]);
+  const mp={type:"MultiPoint",coordinates:P.map(d=>[d[3],d[2]])};
+  const proj=d3.geoMercator().fitExtent([[70,50],[W-70,H-40]],mp);
+  const path=d3.geoPath(proj);
+  g.selectAll('path.land').data(fc.features).join('path')
+    .attr('d',path).attr('fill',land).attr('stroke',lstroke).attr('stroke-width',0.7);
+  const pts=P.map(d=>{const xy=proj([d[3],d[2]]);return{name:d[0],region:d[1],x:xy[0],y:xy[1],c:COL[d[1]]};});
+  const used=[0],rem=new Set(pts.map((_,i)=>i).slice(1)),edges=[];
+  while(rem.size){let best=null;used.forEach(a=>rem.forEach(b=>{const dx=pts[a].x-pts[b].x,dy=pts[a].y-pts[b].y,d=dx*dx+dy*dy;if(!best||d<best.d)best={a,b,d};}));edges.push(best);used.push(best.b);rem.delete(best.b);}
+  g.selectAll('line.net').data(edges).join('line')
+    .attr('x1',e=>pts[e.a].x).attr('y1',e=>pts[e.a].y).attr('x2',e=>pts[e.b].x).attr('y2',e=>pts[e.b].y)
+    .attr('stroke','#b9b4a8').attr('stroke-width',1).attr('stroke-opacity',0.55);
+  const dots=g.selectAll('g.dot').data(pts).join('g').attr('transform',d=>`translate(${d.x},${d.y})`);
+  dots.append('circle').attr('class','dot-hit').attr('r',10);
+  dots.append('circle').attr('r',4.5).attr('fill',d=>d.c).attr('stroke','#fff').attr('stroke-width',1.3).style('pointer-events','none');
+  let sel=null;
+  function show(d,node){
+    tipn.textContent=d.name;tipr.textContent=d.region;
+    const box=svg.node().getBoundingClientRect(),sx=box.width/W,sy=box.height/H;
+    let lx=d.x*sx+12,ly=d.y*sy-8;
+    if(lx>box.width-170)lx=d.x*sx-180;
+    tip.style.left=lx+'px';tip.style.top=ly+'px';tip.style.display='block';
+    if(sel)sel.attr('r',4.5);sel=d3.select(node).select('circle:last-child');sel.attr('r',7);
+  }
+  dots.on('click',function(ev,d){ev.stopPropagation();show(d,this);})
+      .on('mouseenter',function(ev,d){show(d,this);})
+      .on('mouseleave',function(){tip.style.display='none';if(sel){sel.attr('r',4.5);sel=null;}});
+  svg.on('click',()=>{tip.style.display='none';if(sel){sel.attr('r',4.5);sel=null;}});
+  document.getElementById('sub').textContent=P.length+' machines across greater Athens & Attica — tap a dot for the stop.';
+  document.getElementById('foot').innerHTML='Colour groups the metro by area. The tight cluster in the centre is downtown (Kolonaki, Monastiraki, Panormou, Sepolia); the teal points trace the western-Attica arm out toward Elefsina and Megara. Dots are placed at venue level, with closely-spaced central stops nudged slightly apart so each stays clickable.';
+}).catch(e=>{document.getElementById('sub').textContent='Map failed to load (needs internet for the map outline).';});
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DIFRESH Hellas — Machine Network Map</title>
+<style>
+  :root{--ink:#1f2320;--muted:#6b6f6a;--line:#e2ded5;--red:#e24b4a;--land:#ece9e1;--landstroke:#d3cfc5;--bg:#faf9f6;--card:#ffffff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 18px 40px}
+  h1{font-size:22px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+  .mapcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
+  .legend{position:absolute;left:16px;bottom:14px;display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .dotk{width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block}
+  #tip{position:absolute;pointer-events:none;display:none;background:#fff;border:1px solid #c9c5ba;border-radius:9px;padding:8px 11px;max-width:240px;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:5}
+  #tipn{font-size:13px;font-weight:600}
+  #tipr{font-size:12px;color:var(--muted);margin-top:2px}
+  .foot{color:var(--muted);font-size:12.5px;margin-top:14px;line-height:1.6}
+  circle.dot-hit{fill:transparent;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DIFRESH Hellas — machine network</h1>
+  <p class="sub" id="sub">Loading map…</p>
+  <div class="mapcard">
+    <div id="map"></div>
+    <div id="tip"><div id="tipn"></div><div id="tipr"></div></div>
+    <div class="legend"><span class="dotk"></span><span id="cnt">machine location — tap a dot</span></div>
+  </div>
+  <p class="foot" id="foot"></p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const P=[
+["Schimatari — Olympus Plaza 66 (\u2192Thess)","Corridor",38.352,23.601],
+["Schimatari — Olympus Plaza 436 (\u2192Athens)","Corridor",38.347,23.598],
+["Atalanti — Olympus Plaza 144,25 (\u2192Thess)","Corridor",38.652,22.991],
+["Atalanti — Olympus Plaza 144,05 (\u2192Athens)","Corridor",38.647,22.987],
+["Lamia — Best Station (Anthili)","Corridor",38.861,22.412],
+["Lamia — Travel Stop","Corridor",38.872,22.432],
+["Nea Roumeli (Lamia–Athinon)","Corridor",38.802,22.451],
+["Almyros — Goody's/Flocafe (\u2192Thess)","Corridor",39.183,22.763],
+["Almyros — Goody's/Flocafe (\u2192Athens)","Corridor",39.178,22.758],
+["Larisa — Goody's Panepistimiako","Corridor",39.641,22.421],
+["Larisa — KTEL Niavis","Corridor",39.621,22.409],
+["Evangelismos SEA (\u2192Thess)","Corridor",39.752,22.552],
+["Evangelismos SEA (\u2192Athens)","Corridor",39.747,22.548],
+["Makedonia SEA","Corridor",40.05,22.62],
+["Thessaloniki","Corridor",40.64,22.94],
+["Isthmos Korinthou — Goody's","Korinthos",37.93,22.99],
+["Isthmos Korinthou — Grigoris","Korinthos",37.925,22.984],
+["Velo — Grigoris","Korinthos",37.97,22.77],
+["Canale Isthmos","Korinthos",37.921,23.006],
+["Xylokastro — Grand Hall","Korinthos",38.081,22.631],
+["Xylokastro — Elladiko","Korinthos",38.076,22.646],
+["Spathovouni — Goody's","Tripoli",37.86,22.75],
+["Artemisio — ALEA","Tripoli",37.66,22.47],
+["Nestani — Olympus Plaza","Tripoli",37.62,22.42],
+["Arfara Messinias — Olympus","Tripoli",37.10,22.05],
+["Aigio — Ellinikon","Patra",38.25,22.08],
+["Patra (area)","Patra",38.24,21.73],
+["Megara — Goody's (\u2192Athens)","Elefsina–Piraeus",38.001,23.341],
+["Megara — Goody's (\u2192Korinth)","Elefsina–Piraeus",37.997,23.345],
+["Alepochori — Thalassa","Elefsina–Piraeus",38.10,23.20],
+["Elefsina — Anemos Cafe","Elefsina–Piraeus",38.04,23.54],
+["Nea Peramos — Fotiou","Elefsina–Piraeus",38.01,23.42],
+["Chaidari — Marcos Hotel (18 mach)","Elefsina–Piraeus",38.009,23.645],
+["Nea Filadelfeia — Agavito","North Athens",38.033,23.738],
+["Marousi — Fridays Golden Hall","North Athens",38.052,23.792],
+["Kifisia — Fridays Kefalari","North Athens",38.086,23.812],
+["Parnitha — Kavallaris","North Athens",38.16,23.73],
+["Parnitha — Parnis Palace","North Athens",38.155,23.726],
+["Parnitha — Bafi refuge","North Athens",38.149,23.721],
+["Fyli — Caprice","North Athens",38.07,23.66],
+["Nea Erythraia — Flocafe","North Athens",38.078,23.822],
+["Kato Kifisia — Goody's","North Athens",38.066,23.803],
+["Ilion — Goody's Thivon","West Athens",38.031,23.699],
+["Ilion — Margaritas Cafe","West Athens",38.028,23.703],
+["Bournazi — Enzzo","West Athens",38.016,23.695],
+["Kamatero — Psiloreitis","West Athens",38.062,23.706],
+["Chaidari — Athens Queen","West Athens",38.018,23.652],
+["Tritsis Park — Goody's","West Athens",38.021,23.681],
+["Tritsis Park — Flocafe","West Athens",38.019,23.684],
+["Peristeri — Goody's","West Athens",38.013,23.691],
+["Monastiraki — Fridays Kapnikarea","Centre Athens",37.976,23.727],
+["Ampelokipi — Fridays","Centre Athens",37.991,23.759],
+["Kolonaki — Fridays","Centre Athens",37.980,23.742],
+["Sepolia — Mezedopoleio","Centre Athens",38.008,23.722],
+["Panormou — Le Roi","Centre Athens",38.001,23.762],
+["Kokkinos Lotos","Centre Athens",37.985,23.735],
+["Dioskouroi","Centre Athens",37.983,23.732],
+["Hoo Cut","Centre Athens",37.978,23.730],
+["Glyfada — Fridays","South Athens",37.865,23.754],
+["Faliro — Fridays Floisvos","South Athens",37.928,23.699],
+["Nea Smyrni — Goody's","South Athens",37.945,23.714],
+["Kallithea — Goody's","South Athens",37.955,23.701],
+["Pasalimani — Goody's","South Athens",37.938,23.652],
+["Piraeus Limani — Goody's","South Athens",37.943,23.641]
+];
+const RED='#e24b4a',land='#ece9e1',lstroke='#d3cfc5';
+const W=900,H=640;
+document.getElementById('cnt').textContent=P.length+' machine locations — tap a dot';
+const svg=d3.select('#map').append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%');
+const g=svg.append('g');
+const tip=document.getElementById('tip'),tipn=document.getElementById('tipn'),tipr=document.getElementById('tipr');
+d3.json('https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/grc.topo.json').then(topo=>{
+  const key=Object.keys(topo.objects)[0];
+  const fc=topojson.feature(topo,topo.objects[key]);
+  const proj=d3.geoMercator().fitExtent([[24,20],[W-24,H-20]],fc);
+  const path=d3.geoPath(proj);
+  g.selectAll('path.land').data(fc.features).join('path')
+    .attr('d',path).attr('fill',land).attr('stroke',lstroke).attr('stroke-width',0.6);
+  const pts=P.map(d=>{const xy=proj([d[3],d[2]]);return{name:d[0],region:d[1],x:xy[0],y:xy[1]};});
+  const used=[0],rem=new Set(pts.map((_,i)=>i).slice(1)),edges=[];
+  while(rem.size){let best=null;used.forEach(a=>rem.forEach(b=>{const dx=pts[a].x-pts[b].x,dy=pts[a].y-pts[b].y,d=dx*dx+dy*dy;if(!best||d<best.d)best={a,b,d};}));edges.push(best);used.push(best.b);rem.delete(best.b);}
+  g.selectAll('line.net').data(edges).join('line')
+    .attr('x1',e=>pts[e.a].x).attr('y1',e=>pts[e.a].y).attr('x2',e=>pts[e.b].x).attr('y2',e=>pts[e.b].y)
+    .attr('stroke',RED).attr('stroke-width',1).attr('stroke-opacity',0.42);
+  const dots=g.selectAll('g.dot').data(pts).join('g').attr('transform',d=>`translate(${d.x},${d.y})`);
+  dots.append('circle').attr('class','dot-hit').attr('r',9);
+  dots.append('circle').attr('r',4).attr('fill',RED).attr('stroke','#fff').attr('stroke-width',1.2).style('pointer-events','none');
+  let sel=null;
+  function show(d,node){
+    tipn.textContent=d.name;tipr.textContent=d.region;
+    const box=svg.node().getBoundingClientRect(),sx=box.width/W,sy=box.height/H;
+    let lx=d.x*sx+12,ly=d.y*sy-8;
+    if(lx>box.width-170)lx=d.x*sx-180;
+    tip.style.left=lx+'px';tip.style.top=ly+'px';tip.style.display='block';
+    if(sel)sel.attr('r',4);sel=d3.select(node).select('circle:last-child');sel.attr('r',6.5);
+  }
+  dots.on('click',function(ev,d){ev.stopPropagation();show(d,this);})
+      .on('mouseenter',function(ev,d){show(d,this);})
+      .on('mouseleave',function(){tip.style.display='none';if(sel){sel.attr('r',4);sel=null;}});
+  svg.on('click',()=>{tip.style.display='none';if(sel){sel.attr('r',4);sel=null;}});
+  document.getElementById('sub').textContent='Every named stop across the two route ledgers, wired into one network. Tap any dot for the stop and region.';
+  document.getElementById('foot').innerHTML='Showing '+P.length+' named locations. The Athens–Thessaloniki corridor is now complete end to end (both directions of Schimatari, Atalanti, Almyros and Evangelismos are listed as separate points, matching the ledger). Patra is represented by Aigio and a Patra-area marker — its other ~15 venues have no names recorded in the sheet yet, so they can\u2019t be pinned individually. Dot positions are accurate to town/venue level; tightly-clustered Athens stops are nudged slightly apart so each stays clickable.';
+}).catch(e=>{document.getElementById('sub').textContent='Map failed to load (needs internet for the map outline).';});
+</script>
+</body>
+</html>

@@ -5,16 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tauro Delay Spray — DIFRESHHELLAS</title>
 <link rel="stylesheet" href="css/style.css">
-<style>
-  #hero .bg-slide {
-    background-image: url('images/tauro.jpg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: 80% center;
-    opacity: 1;
-  }
-  @media (max-width: 768px) { #hero .bg-slide { background-position: center 82%; background-size: 68%; } }
-</style>
 </head>
 <body>
 
@@ -48,8 +38,8 @@
   <a href="index.html#maps">Find Machines</a>
 </div>
 
-<section class="product-hero" id="hero">
-  <div class="bg-slide"></div>
+<section class="product-hero single" id="hero" style="--hero-img: url('images/tauro.jpg')">
+  <div class="bg-slides"><div class="bg-slide active"></div></div>
   <div class="overlay"></div>
   <div class="hero-text">
     <p class="eyebrow">Performance</p>
@@ -125,5 +115,6 @@
 </footer>
 
 <script src="js/nav.js"></script>
+<script src="js/animations.js"></script>
 </body>
 </html>

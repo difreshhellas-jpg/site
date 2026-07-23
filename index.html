@@ -9,6 +9,24 @@
 </head>
 <body>
 
+<!-- ===== INTRO SPLASH ===== -->
+<div id="intro-splash" hidden>
+  <video src="videos/difresh_intro.mp4" muted playsinline preload="auto" aria-label="DIFRESH Hellas brand intro"></video>
+  <button id="intro-skip" type="button">Skip Intro</button>
+</div>
+<script>
+(function () {
+  var s = document.getElementById('intro-splash');
+  try {
+    if (!sessionStorage.getItem('difreshIntroSeen') &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      s.hidden = false;
+      document.documentElement.classList.add('intro-lock');
+    }
+  } catch (e) {}
+})();
+</script>
+
 <header class="site-header">
   <div class="nav-inner">
     <a href="index.html" class="logo">DIFRESHHELLAS</a>
@@ -41,6 +59,8 @@
 
 <!-- ===== HERO ===== -->
 <section class="hero">
+  <video class="hero-video" src="videos/difresh_loop.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+  <div class="hero-overlay" aria-hidden="true"></div>
   <div class="hero-content">
     <p class="eyebrow">Premium Healthcare &amp; Retail Vending</p>
     <h1>Everyday essentials, always within reach</h1>
@@ -49,6 +69,10 @@
       <a href="#products" class="btn btn-primary">Explore Products</a>
       <a href="#maps" class="btn btn-secondary">Find Near Me</a>
     </div>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">
+    <span>Scroll</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
 </section>
 
@@ -68,15 +92,23 @@
       </div>
       <div>
         <div class="about-stats">
-          <div class="stat"><div class="num">6</div><div class="lbl">Product lines</div></div>
+          <div class="stat"><div class="num" data-count="6">6</div><div class="lbl">Product lines</div></div>
           <div class="stat"><div class="num">24/7</div><div class="lbl">Availability</div></div>
-          <div class="stat"><div class="num">60+</div><div class="lbl">Machine locations</div></div>
-          <div class="stat"><div class="num">100%</div><div class="lbl">Discreet access</div></div>
+          <div class="stat"><div class="num" data-count="60" data-suffix="+">60+</div><div class="lbl">Machine locations</div></div>
+          <div class="stat"><div class="num" data-count="100" data-suffix="%">100%</div><div class="lbl">Discreet access</div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ===== BRAND MARQUEE ===== -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Difresh Hellas ✦ Premium Essentials ✦ 24/7 Access ✦ 60+ Locations ✦ Discreet by Design ✦&nbsp;</span>
+    <span>Difresh Hellas ✦ Premium Essentials ✦ 24/7 Access ✦ 60+ Locations ✦ Discreet by Design ✦&nbsp;</span>
+  </div>
+</div>
 
 <!-- ===== PRODUCTS AT A GLANCE ===== -->
 <section id="products">
@@ -127,10 +159,10 @@
         </div>
       </a>
       <a class="product-card" href="#souvenir">
-        <img class="thumb" src="images/atom_golden.png" alt="Souvenir Travel Combo">
+        <img class="thumb" src="images/souvenir_black.jpg" alt="Souvenir Toothbrush &amp; Paste Combo — I Love Greece edition">
         <div class="card-body">
-          <h3>Souvenir Travel Combo</h3>
-          <p class="desc">Beautifully curated gift set, timeless elegance.</p>
+          <h3>Souvenir Toothbrush Combo</h3>
+          <p class="desc">The I ♥ Greece collectible — oral care that doubles as a keepsake.</p>
           <span class="price-inline">€2</span>
         </div>
       </a>
@@ -318,25 +350,21 @@
 <section id="souvenir" class="product-section">
   <div class="container">
     <div class="ps-grid reverse">
-      <div class="ps-media">
-        <svg viewBox="0 0 64 64" fill="none" stroke="#FFFFFF" stroke-width="1.2" style="width:60%;height:auto;">
-          <rect x="10" y="26" width="44" height="30" rx="2"/>
-          <rect x="6" y="18" width="52" height="10" rx="2"/>
-          <line x1="32" y1="18" x2="32" y2="56"/>
-          <path d="M32 18c-4-10-18-10-16-2 1 4 8 3 16 2z"/>
-          <path d="M32 18c4-10 18-10 16-2-1 4-8 3-16 2z"/>
-        </svg>
+      <div class="ps-media auto-cycle" data-images="images/souvenir_black.jpg, images/souvenir_blue.jpg, images/souvenir_lightblue.jpg, images/souvenir_green.jpg, images/souvenir_yellow.jpg, images/souvenir_orange.jpg, images/souvenir_red.jpg, images/souvenir_pink.jpg, images/souvenir_purple.jpg">
+        <img src="images/souvenir_black.jpg" alt="Souvenir Toothbrush &amp; Paste Combo with I Love Greece Parthenon print">
       </div>
       <div class="ps-content">
-        <p class="eyebrow">Gift Set</p>
-        <h2>Souvenir Travel Combo</h2>
-        <div class="price"><span class="cur">€</span>2<span class="unit">/ set</span></div>
-        <p>A beautifully curated travel-essentials gift set with timeless, ready-to-gift presentation.</p>
+        <p class="eyebrow">Souvenir · Oral Care</p>
+        <h2>Travel Toothbrush &amp; Paste Combo</h2>
+        <div class="price"><span class="cur">€</span>2<span class="unit">/ unit</span></div>
+        <p>Professional-grade oral care in a compact 2-in-1 format — the essential souvenir for travelers, commuters, and anyone on the move. Available in vibrant colors that double as collectible keepsakes.</p>
         <ul class="feature-list">
-          <li>Premium gift packaging</li>
-          <li>All-in-one travel essentials</li>
-          <li>Perfect souvenir gift</li>
-          <li>Luxury presentation</li>
+          <li>Integrated toothbrush + paste design</li>
+          <li>Travel-sized for carry-on luggage &amp; jacket pockets</li>
+          <li>Professional dental-grade formula with fluoride</li>
+          <li>Antimicrobial bristles, 200+ brush count</li>
+          <li>Color-coded by flavor variant</li>
+          <li>Collectible appeal — vibrant I ♥ Greece colors</li>
         </ul>
         <div class="btn-row">
           <a href="#maps" class="btn btn-primary btn-sm">Find Near Me</a>
@@ -345,15 +373,12 @@
       </div>
     </div>
     <div class="info-grid">
-      <div class="spec-item"><h3>Contents</h3><p>Complete travel kit: toothbrush + paste, mouthwash sample, travel perfume atomizer, and premium comfort items.</p></div>
-      <div class="spec-item"><h3>Gift Packaging</h3><p>Premium cardboard box with branded padding, tissue wrapping, and ribbon. Ready-to-gift presentation for corporate gifts or souvenirs.</p></div>
-      <div class="spec-item"><h3>Total Value</h3><p>Individual products total 45–55 EUR retail. Combo offered at a 30% discount.</p></div>
-      <div class="spec-item"><h3>Weight &amp; Portability</h3><p>Under 200g total. Box 15cm × 10cm × 8cm — fits standard carry-on luggage and gift bags.</p></div>
-      <div class="spec-item"><h3>Use Cases</h3><p>Business-travel gifts, wedding favors, corporate giveaways, airline amenities, hotel room amenities, tourism promotions.</p></div>
-      <div class="spec-item"><h3>Customization</h3><p>Custom branding available (logo on box, personalized ribbon, branded insert) for orders of 50+ units.</p></div>
-      <div class="spec-item"><h3>Shelf Life</h3><p>All products maintain full efficacy for 24+ months. Best used within 12 months for optimal freshness.</p></div>
-      <div class="spec-item"><h3>Eco-Friendly</h3><p>Recyclable cardboard box, biodegradable tissue wrap, minimal plastic — a sustainable gift option.</p></div>
-      <div class="spec-item"><h3>Wholesale</h3><p>Available for B2B orders with special pricing for hotels, airlines, corporate partners, and retail distributors.</p></div>
+      <div class="spec-item"><h3>Usage</h3><p>Designed for airport security, hotel check-ins, overnight trips, and daily commutes. The fluoride-enriched paste combines professional cleaning with fresh breath protection. Squeezable paste dispenser requires no water for initial rinse; bristles activate with minimal moisture.</p></div>
+      <div class="spec-item"><h3>Dimensions</h3><p>7.5 cm height × 2.2 cm diameter. Fits standard jacket pockets, carry-on organizers, and hotel toiletry kits. Weight: 12g.</p></div>
+      <div class="spec-item"><h3>Materials</h3><p>Bristles: food-grade nylon with soft-grip antimicrobial treatment. Handle: ergonomic plastic casing. Paste reservoir: BPA-free thermoplastic.</p></div>
+      <div class="spec-item"><h3>Shelf Life</h3><p>2+ years from manufacture. Bristles remain effective through 200+ individual brushings. Paste formulation maintains potency in cool, dry conditions.</p></div>
+      <div class="spec-item"><h3>Certifications</h3><p>✓ European Dental Association approved&nbsp;&nbsp;✓ Dermatologist tested &amp; hypoallergenic&nbsp;&nbsp;✓ ISO 20126 oral care standard compliance</p></div>
+      <div class="spec-item"><h3>Storage &amp; Care</h3><p>Store upright in dry conditions (avoid humidity). Rinse bristles thoroughly after each use. Do not expose to temperatures above 50°C. Cap tightly to prevent paste oxidation. Suitable for travel bags up to 6 months.</p></div>
     </div>
   </div>
 </section>
@@ -465,5 +490,6 @@
 </footer>
 
 <script src="js/nav.js"></script>
+<script src="js/animations.js"></script>
 </body>
 </html>
